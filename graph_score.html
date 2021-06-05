@@ -9,7 +9,7 @@
   <script src="./js/show_graph.js"></script>
   <script>
     $(document).ready(function () {
-      window.val = [[0], [0], [0]];
+      window.val = [[0, 0, 0, 0]];
       var ctx = document.getElementById("my-line-chart");
       get_csv_data('data/score_log.csv', ctx, true);
       setInterval(get_csv_data, 5000, 'data/score_log.csv', ctx, true);
