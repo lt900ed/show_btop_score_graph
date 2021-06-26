@@ -136,7 +136,7 @@ function get_this_game_val(arr) {
 
 function csv2array(data) {
   const dataArray = [];
-  const dataString = data.split('\r\n');
+  const dataString = data.split('\n');
   var tmp_arr;
   for (let i = 1; i < dataString.length; i++) {
     tmp_arr = dataString[i].split(',');
