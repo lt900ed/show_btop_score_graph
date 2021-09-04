@@ -63,7 +63,8 @@ h2{
 }
 .gauge-container{
   position: relative;
-  width:100vw;
+  width:98vw;
+  margin: 0 auto;
 }
 .plus-clr{
   color: #00F2FF;
