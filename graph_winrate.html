@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>Today Ground Rating Shift</title>
+  <link rel="stylesheet" href="./css/show_graph.css" type="text/css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="./js/raphael-2.1.4.min.js"></script>
+  <script src="./js/justgage.js"></script>
+  <script src="./js/show_gauge.js"></script>
+  <script>
+    $(document).ready(function () {
+      window.today_results = [];
+      get_csv_data_for_win_rate('data/battle_log.csv', 'my-gauge');
+      setInterval(get_csv_data_for_win_rate, 10000, 'data/battle_log.csv', 'my-gauge');
+    });
+  </script>
+</head>
+<body>
+  <div id="wrapper">
+    <div id="full-width-content">
+      <h2>Today Win Rate</h2>
+      <div id="my-gauge" class="gauge-container">
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -48,7 +48,7 @@ h2{
 }
 #full-width-content{
   /* margin-right: .5rem; */
-  height: 100vh;
+  /* height: 100vh; */
   flex: 0 1 100%;
 }
 .chart-container{
@@ -60,6 +60,14 @@ h2{
   position: relative;
   height:40vh;
   width:100vw;
+}
+.gauge-container{
+  position: relative;
+  width:100vw;
+  height: 60vw;
+}
+#my-gauge{
+  width: 100%;
 }
 .plus-clr{
   color: #00F2FF;
