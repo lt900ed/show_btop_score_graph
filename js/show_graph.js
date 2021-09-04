@@ -111,7 +111,6 @@ function get_csv_data(dataPath, ctx, is_ground) {
       }
     },
     error:function() {
-      alert("ロード失敗");
     }
   });
 }
