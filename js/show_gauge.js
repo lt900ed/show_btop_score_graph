@@ -48,7 +48,7 @@ function get_csv_data_for_win_rate(path_data, div_id) {
         });
         window.gauge = g
       }
-      window.gauge.refresh(win_rate * 100)
+      window.gauge.refresh(Math.round(win_rate * 100))
     },
     error: function() {
     }
