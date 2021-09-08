@@ -1,4 +1,4 @@
-function add_radar_graph(ctx, arr_today, arr_lastday) {
+function add_radar_graph(ctx, arr_last10) {
   if (window.myChart) {
     window.myChart.destroy();
   }
@@ -12,30 +12,22 @@ function add_radar_graph(ctx, arr_today, arr_lastday) {
   var tick_x_size = Math.floor(vw / 25);
   var tick_y_size = Math.floor(vw / 20);
   var tick_r_size = Math.floor(vw / 20);
-  var arr_today = get_avg_of_results(arr_today);
-  var arr_lastday = get_avg_of_results(arr_lastday);
-  console.log(arr_today);
-  console.log(arr_lastday);
-  console.log('calc limit');
-  var arr_limit = []
-  for (let i = 0; i < arr_today.length; i++) {
-    arr_limit.push(Math.max(arr_today[i], arr_lastday[i]))
-  }
-  if (Number.isFinite(arr_today[5]) && Number.isFinite(arr_lastday[5])) {
-    arr_limit[5] = Math.min(arr_today[5], arr_lastday[5])
-  } else if (Number.isFinite(arr_today[5])) {
-    arr_limit[5] = arr_today[5]
-  } else {
-    arr_limit[5] = arr_lastday[5]
-  }
-  var val_today = arr_today.map(function(r, i) {return r / arr_limit[i]})
-  var val_lastday = arr_lastday.map(function(r, i) {return r / arr_limit[i]})
-  val_today[5] = 1 / val_today[5]
-  val_lastday[5] = 1 / val_lastday[5]
-  console.log(arr_limit);
-  console.log(val_today);
-  console.log(val_lastday);
-
+  var datalabel_size = Math.floor(vw / 15);
+  var arr_avg_sd = get_avg_sd_of_results(arr_last10);
+  var val_lastgame = arr_last10.slice(-1)[0]
+  // console.log(val_lastgame);
+  val_lastgame = val_lastgame.map((v, i) => {return get_standard_score(Number(v), arr_avg_sd[i]['avg'], arr_avg_sd[i]['sd'], false)})
+  // console.log(val_lastgame);
+  val_lastgame[5] = get_standard_score(Number(arr_last10.slice(-1)[0][5]), arr_avg_sd[5]['avg'], arr_avg_sd[5]['sd'], true)
+  // console.log(val_lastgame);
+  var datalabel_color = val_lastgame.map(v => {
+    if (v > 50) {
+      return 'aqua'
+    } else if (v < 50) {
+      return 'lightpink'
+    } else {
+      return 'white'
+    }})
 
   window.myChart = new Chart(ctx, {
     type: 'radar',
@@ -43,21 +35,16 @@ function add_radar_graph(ctx, arr_today, arr_lastday) {
       labels: ['SCORE', 'ASSIST', 'DMG', 'DIVERSION', 'DEFEAT', 'LOSS', 'CHASE'],
       datasets: [
         {
-          label: 'Today',
-          data: val_today,
+          label: 'LastResult',
+          data: val_lastgame,
           borderColor: clr_today,
           backgroundColor: bgclr_today,
           borderWidth: border_width,
-          pointRadius: 0
+          pointRadius: 0,
+          datalabels: { // 月別気温(2019)のデータラベル設定
+            align: 'end' // データラベルの位置（'end' は上側）
+          }
         },
-        {
-          label: 'Lastday',
-          data: val_lastday,
-          borderColor: clr_lastday,
-          backgroundColor: bgclr_lastday,
-          borderWidth: border_width,
-          pointRadius: 0
-        }
       ],
     },
     options: {
@@ -70,8 +57,8 @@ function add_radar_graph(ctx, arr_today, arr_lastday) {
               display: true,
               color: 'gray'
             },
-            suggestedMin: 0,
-            suggestedMax: 1,
+            suggestedMin: 25,
+            suggestedMax: 75,
             pointLabels: {
               color: 'white',
               font: {
@@ -84,7 +71,7 @@ function add_radar_graph(ctx, arr_today, arr_lastday) {
             },
             ticks: {
               display: false,
-              stepSize: 0.25
+              stepSize: 25
             }
         }
       },
@@ -96,23 +83,23 @@ function add_radar_graph(ctx, arr_today, arr_lastday) {
           labels: {
             color: 'white',
             font: {
-              size: tick_r_size
+              size: tick_r_size,
+              weight: 'bold'
             }
+          }
+        },
+        datalabels: {
+          color: datalabel_color,
+          font: {
+            size: datalabel_size
+          },
+          formatter: function(value, context) {
+            return Math.round(value);
           }
         }
       }
     }
   });
-}
-
-function step_by_step(ctx, is_ground) {
-  window.val.push(window.val[window.val.length - 1] + 1)
-  add_graph(ctx, is_ground, window.val);
-}
-
-function regularly_update(ctx, is_ground) {
-  window.val.push(window.val[window.val.length - 1] + 1)
-  add_graph(ctx, is_ground, window.val);
 }
 
 function get_csv_data_for_battle_log(path_data, ctx, is_ground) {
@@ -123,60 +110,20 @@ function get_csv_data_for_battle_log(path_data, ctx, is_ground) {
     timeout: 5000,
     success: function(res) {
       var arr = csv2array_for_battle_log(res);
-      var today_rows = get_today_rows(arr);
-      var lastday_rows = get_lastday_rows(arr);
-      console.log(today_rows);
-      console.log(lastday_rows);
-      if (window.first_flg || window.display_today_rows.length != today_rows.length) {
-        window.first_flg = false;
-        window.display_today_rows = today_rows;
-        window.display_lastday_rows = lastday_rows;
-        add_radar_graph(ctx, window.display_today_rows, window.display_lastday_rows);
+      var last10_rows = arr.slice(-10);
+      // console.log(last10_rows);
+      if (last10_rows.length > 0) {
+        last10_rows = last10_rows.map(i => {return i.slice(22)})
+        if (window.first_flg || JSON.stringify(window.display_last10_rows) != JSON.stringify(last10_rows)) {
+          window.first_flg = false;
+          window.display_last10_rows = last10_rows;
+          add_radar_graph(ctx, window.display_last10_rows);
+        }
       }
     },
     error: function() {
     }
   });
-}
-
-function get_today_rows(arr) {
-  var btop_date_today = get_btop_date(new Date())
-  if (arr.length == 0) {
-    return [];
-  } else if (arr.length == 1 && new Date(arr[0][0]) > btop_date_today) {
-    return arr
-  } else {
-    var index = 0
-    arr.forEach(function(row, i) {
-      if (i > 0) {
-        if (new Date(row[0]) < btop_date_today) {
-          index = i
-        }
-      }
-    });
-    var today_rows = arr.slice(index + 1);
-    return today_rows
-  }
-}
-
-function get_lastday_rows(arr) {
-  var index = 0
-  var btop_date_today = get_btop_date(new Date())
-  var tmp_btop_dates = [];
-  arr.forEach(function(row, i) {
-    tmp_btop_dates.push(get_btop_date(new Date(row[0])).getTime());
-  });
-  var btop_dates = Array.from(new Set(tmp_btop_dates));
-  btop_dates = btop_dates.filter(item => item != btop_date_today.getTime());
-  if (btop_dates.length == 0) {
-    return [];
-  } else {
-    btop_date_lastday = new Date(btop_dates.reduce((a,b)=>Math.max(a,b)));
-
-    var lastday_rows = arr.filter(row => get_btop_date(new Date(row[0])).getTime() == btop_date_lastday.getTime());
-    // console.log(lastday_rows);
-    return lastday_rows
-  }
 }
 
 function csv2array_for_battle_log(data) {
@@ -201,13 +148,13 @@ function get_btop_date(date) {
 }
 
 function get_avg_of_results(arr) {
-  console.log('get avg')
-  console.log(arr)
+  // console.log('get avg')
+  // console.log(arr)
   if (arr.length == 0) {
     return [null, null, null, null, null, null, null]
   } else {
-    var arr_result = arr.map(i => {return i.slice(22)})
-    console.log(arr_result)
+    var arr_result = arr
+    // console.log(arr_result)
     arr_sum = arr_result.reduce((p, c) => [
       p[0] + Number(c[0]),
       p[1] + Number(c[1]),
@@ -218,5 +165,62 @@ function get_avg_of_results(arr) {
       p[6] + Number(c[6])
     ], [0, 0, 0, 0, 0, 0, 0])
     return arr_sum.map(i => {return i / arr.length})
+  }
+}
+
+function get_avg_sd_of_results(arr) {
+  // console.log('get avg and sd')
+  // console.log(arr)
+  if (arr.length == 0) {
+    return [null, null, null, null, null, null, null]
+  } else {
+    arr_sum = arr.reduce((p, c) => [
+      p[0] + Number(c[0]),
+      p[1] + Number(c[1]),
+      p[2] + Number(c[2]),
+      p[3] + Number(c[3]),
+      p[4] + Number(c[4]),
+      p[5] + Number(c[5]),
+      p[6] + Number(c[6])
+    ], [0, 0, 0, 0, 0, 0, 0])
+    arr_avg = arr_sum.map(i => {return i / arr.length})
+    // console.log(arr_avg)
+    arr_squared_diff = arr.map(i => {return [
+      (i[0] - arr_avg[0]) ** 2,
+      (i[1] - arr_avg[1]) ** 2,
+      (i[2] - arr_avg[2]) ** 2,
+      (i[3] - arr_avg[3]) ** 2,
+      (i[4] - arr_avg[4]) ** 2,
+      (i[5] - arr_avg[5]) ** 2,
+      (i[6] - arr_avg[6]) ** 2
+    ]})
+    // console.log(arr_squared_diff)
+    arr_sum_squared_diff = arr_squared_diff.reduce((p, c) => [
+      p[0] + c[0],
+      p[1] + c[1],
+      p[2] + c[2],
+      p[3] + c[3],
+      p[4] + c[4],
+      p[5] + c[5],
+      p[6] + c[6]
+    ], [0, 0, 0, 0, 0, 0, 0])
+    // console.log(arr_sum_squared_diff)
+    arr_sd = arr_sum_squared_diff.map(i => {return Math.sqrt(i / arr.length)})
+    // console.log(arr_sd)
+    var out = []
+    for (let i = 0; i < arr_sd.length; i++) {
+      out.push({'avg': arr_avg[i], 'sd': arr_sd[i]})
+    }
+    // console.log(out)
+    return out
+  }
+}
+
+function get_standard_score(v, avg, sd, reverse) {
+  // console.log(v, avg, sd, reverse)
+  if (reverse) {
+    return -10 * ((v - avg) / sd) + 50
+  } else {
+    return 10 * ((v - avg) / sd) + 50
   }
 }
