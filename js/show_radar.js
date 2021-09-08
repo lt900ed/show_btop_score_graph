@@ -9,10 +9,8 @@ function add_radar_graph(ctx, arr_last10) {
   var bgclr_lastday = "rgba(241, 86, 40, 0.3)"
   var vw = $(window).width();
   var border_width = Math.floor(vw / 80);
-  var tick_x_size = Math.floor(vw / 25);
-  var tick_y_size = Math.floor(vw / 20);
   var tick_r_size = Math.floor(vw / 20);
-  var datalabel_size = Math.floor(vw / 15);
+  var datalabel_base_size = Math.floor(vw / 15);
   var arr_avg_sd = get_avg_sd_of_results(arr_last10);
   var val_lastgame = arr_last10.slice(-1)[0]
   // console.log(val_lastgame);
@@ -27,6 +25,14 @@ function add_radar_graph(ctx, arr_last10) {
       return 'lightpink'
     } else {
       return 'white'
+    }})
+  var datalabel_font = val_lastgame.map(v => {
+    if (v > 50) {
+      return {size: Math.floor(datalabel_base_size * 1.05)}
+    } else if (v < 50) {
+      return {size: Math.floor(datalabel_base_size * 0.8)}
+    } else {
+      return {size: datalabel_base_size}
     }})
 
   window.myChart = new Chart(ctx, {
@@ -90,9 +96,7 @@ function add_radar_graph(ctx, arr_last10) {
         },
         datalabels: {
           color: datalabel_color,
-          font: {
-            size: datalabel_size
-          },
+          font: datalabel_font,
           formatter: function(value, context) {
             return Math.round(value);
           }
@@ -102,7 +106,7 @@ function add_radar_graph(ctx, arr_last10) {
   });
 }
 
-function get_csv_data_for_battle_log(path_data, ctx, is_ground) {
+function get_csv_data_for_battle_log(path_data, ctx) {
   $.ajax({
     url: path_data,
     type: 'GET',
@@ -145,27 +149,6 @@ function get_btop_date(date) {
     date_start.setDate(date.getDate() - 1)
   }
   return new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate(), 5, 0, 0)
-}
-
-function get_avg_of_results(arr) {
-  // console.log('get avg')
-  // console.log(arr)
-  if (arr.length == 0) {
-    return [null, null, null, null, null, null, null]
-  } else {
-    var arr_result = arr
-    // console.log(arr_result)
-    arr_sum = arr_result.reduce((p, c) => [
-      p[0] + Number(c[0]),
-      p[1] + Number(c[1]),
-      p[2] + Number(c[2]),
-      p[3] + Number(c[3]),
-      p[4] + Number(c[4]),
-      p[5] + Number(c[5]),
-      p[6] + Number(c[6])
-    ], [0, 0, 0, 0, 0, 0, 0])
-    return arr_sum.map(i => {return i / arr.length})
-  }
 }
 
 function get_avg_sd_of_results(arr) {

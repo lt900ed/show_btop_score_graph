@@ -14,8 +14,8 @@
       window.display_last10_rows = [];
       window.first_flg = true;
       var ctx = document.getElementById("my-line-chart");
-      get_csv_data_for_battle_log('data/battle_log.csv', ctx, true);
-      setInterval(get_csv_data_for_battle_log, 10000, 'data/battle_log.csv', ctx, true);
+      get_csv_data_for_battle_log('data/battle_log.csv', ctx);
+      setInterval(get_csv_data_for_battle_log, 10000, 'data/battle_log.csv', ctx);
     });
   </script>
 </head>
