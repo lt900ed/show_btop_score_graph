@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>Win/Lose Prediction</title>
+  <link rel="stylesheet" href="./css/show_graph.css" type="text/css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="./js/raphael-2.1.4.min.js"></script>
+  <script src="./js/justgage.js"></script>
+  <script src="./js/show_gauge_for_predict.js"></script>
+  <script>
+    $(document).ready(function () {
+      window.displayArr = [];
+      get_tsv_data_for_win_predict('data/win_predict.tsv', 'my-gauge');
+      setInterval(get_tsv_data_for_win_predict, 5000, 'data/win_predict.tsv', 'my-gauge');
+    });
+  </script>
+</head>
+<body>
+  <div id="wrapper">
+    <div id="full-width-content">
+      <h2>Win/Lose Prediction</h2>
+      <div id="my-gauge" class="gauge-container">
+      </div>
+    </div>
+  </div>
+</body>
+</html>
